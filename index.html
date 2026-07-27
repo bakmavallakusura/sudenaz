@@ -49,9 +49,9 @@
             text-align: center;
         }
 
-        /* Kalbin Altındaki İmza - El Yazısı Alanı */
+        /* Kalp ile yazı arasındaki mesafe arttırıldı (margin-top: 280px) */
         .signature-container {
-            margin-top: 220px;
+            margin-top: 280px;
             height: 90px;
             display: flex;
             align-items: center;
@@ -164,14 +164,14 @@
         }
     }
 
-    // Kalp Denklem Koordinatları
+    // Kalp Denklem Koordinatları (Kalp biraz daha yukarı çekildi)
     function getHeartPoint(t) {
-        const scale = Math.min(width, height) / 42;
+        const scale = Math.min(width, height) / 45;
         const x = 16 * Math.pow(Math.sin(t), 3);
         const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
         return {
             x: width / 2 + x * scale,
-            y: height / 2 - 45 + y * scale
+            y: height / 2 - 60 + y * scale
         };
     }
 
@@ -207,7 +207,7 @@
             sigText.textContent += text.charAt(index);
             setTimeout(() => {
                 typeSignature(text, index + 1);
-            }, 210); // Harf yazılma temposu
+            }, 210);
         } else {
             setTimeout(() => {
                 sigText.classList.remove('writing');
@@ -259,7 +259,7 @@
             }
             ctx.stroke();
 
-            // Kalbin En Önünde Dönerek Çizen Altın Oran Spirali
+            // Dönerek Çizen Altın Oran Spirali
             if (!isFinished) {
                 const headPoint = getHeartPoint(t);
                 drawGoldenSpiralHead(headPoint.x, headPoint.y, spiralAngle);
