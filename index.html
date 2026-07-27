@@ -14,7 +14,6 @@
         }
 
         body {
-            /* Çok daha koyu, derin gece moru arka plan */
             background: #04010a;
             color: #fff;
             display: flex;
@@ -50,22 +49,39 @@
             text-align: center;
         }
 
-        /* Kalbin Altındaki İmza - Sudenaz */
+        /* Kalbin Altındaki İmza - El Yazısı Alanı */
+        .signature-container {
+            margin-top: 200px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .signature {
             font-family: 'Great Vibes', cursive;
             font-size: 4.5rem;
             color: #d8b4fe;
             text-shadow: 0 0 15px #9d4edd, 0 0 30px #7b2cbf, 0 0 45px #3c096c;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 2s ease-in-out;
-            letter-spacing: 2px;
-            margin-top: 190px;
+            letter-spacing: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 2px solid transparent;
+            width: 0;
         }
 
-        .signature.show {
-            opacity: 1;
-            transform: translateY(0);
+        .signature.writing {
+            border-color: #c77dff;
+            animation: blink-cursor 0.7s infinite;
+        }
+
+        .signature.finished {
+            border-color: transparent;
+            animation: none;
+        }
+
+        @keyframes blink-cursor {
+            50% { border-color: transparent; }
         }
 
         /* Tıklama Uyarısı */
@@ -91,7 +107,9 @@
 <div class="container">
     <canvas id="canvas"></canvas>
     <div class="ui-layer">
-        <div class="signature" id="sigText">Sudenaz</div>
+        <div class="signature-container">
+            <div class="signature" id="sigText"></div>
+        </div>
     </div>
     <div class="click-hint" id="hint">Dokun ve Başlat ✨</div>
 </div>
@@ -106,7 +124,7 @@
     let isRunning = false;
     let animFrame;
 
-    // Mor Yağmur Damlaları Dizisi
+    // Mor Yağmur Damlaları
     const rainDrops = [];
     const rainCount = 70;
 
@@ -117,7 +135,7 @@
     window.addEventListener('resize', resize);
     resize();
 
-    // Yağmur Parçacıklarını Başlat
+    // Arka plan Yağmuru
     for (let i = 0; i < rainCount; i++) {
         rainDrops.push({
             x: Math.random() * window.innerWidth,
@@ -146,7 +164,7 @@
         }
     }
 
-    // Kalp Parametrik Denklemi
+    // Kalp Denklem Koordinatları
     function getHeartPoint(t) {
         const scale = Math.min(width, height) / 42;
         const x = 16 * Math.pow(Math.sin(t), 3);
@@ -157,75 +175,98 @@
         };
     }
 
+    // Altın Oran Spirali Çizen Fonksiyon (Her Kalp Noktasında Dönen Spiral)
+    function drawGoldenSpiralAt(cx, cy, radius, rotAngle) {
+        const phi = (1 + Math.sqrt(5)) / 2;
+        ctx.strokeStyle = 'rgba(216, 180, 254, 0.6)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+
+        for (let a = 0; a < Math.PI * 3; a += 0.1) {
+            const r = Math.pow(phi, a / (Math.PI / 2)) * (radius / 15);
+            if (r > radius) break;
+            const x = cx + r * Math.cos(a + rotAngle);
+            const y = cy + r * Math.sin(a + rotAngle);
+            if (a === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    // Harf Harf El Yazısı
+    function typeSignature(text, index = 0) {
+        if (index === 0) {
+            sigText.textContent = '';
+            sigText.style.width = 'auto';
+            sigText.classList.add('writing');
+        }
+
+        if (index < text.length) {
+            sigText.textContent += text.charAt(index);
+            setTimeout(() => {
+                typeSignature(text, index + 1);
+            }, 200);
+        } else {
+            setTimeout(() => {
+                sigText.classList.remove('writing');
+                sigText.classList.add('finished');
+            }, 800);
+        }
+    }
+
     function startAnimation() {
         if (isRunning) return;
         isRunning = true;
 
         hint.style.display = 'none';
-        sigText.classList.remove('show');
+        sigText.textContent = '';
 
-        let phi = (1 + Math.sqrt(5)) / 2; // Altın Oran
-        let angle = 0;
         let t = 0;
-        let phase = 'golden-spiral';
+        let spiralAngle = 0;
+        let isFinished = false;
 
         function render() {
-            // Koyu arka planı temizle ve yağmuru çiz
             ctx.fillStyle = '#04010a';
             ctx.fillRect(0, 0, width, height);
             drawRain();
 
-            if (phase === 'golden-spiral') {
-                angle += 0.08;
-                const radius = Math.pow(phi, angle / (Math.PI * 1.5)) * 2;
-                
-                const cx = width / 2;
-                const cy = height / 2 - 40;
+            // Kalp çizimi ilerliyor
+            if (!isFinished) {
+                t += 0.025;
+                spiralAngle += 0.15;
 
-                const x1 = cx + radius * Math.cos(angle);
-                const y1 = cy + radius * Math.sin(angle);
-                const x2 = cx - radius * Math.cos(angle);
-                const y2 = cy - radius * Math.sin(angle);
-
-                ctx.strokeStyle = 'rgba(199, 125, 255, 0.5)';
-                ctx.lineWidth = 1.5;
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = '#9d4edd';
-
-                ctx.beginPath();
-                ctx.arc(x1, y1, 1.5, 0, Math.PI * 2);
-                ctx.arc(x2, y2, 1.5, 0, Math.PI * 2);
-                ctx.stroke();
-
-                if (radius > Math.min(width, height) / 2.8) {
-                    phase = 'heart';
+                if (t >= Math.PI * 2) {
+                    t = Math.PI * 2;
+                    isFinished = true;
+                    setTimeout(() => {
+                        typeSignature('Sudenaz');
+                    }, 400);
                 }
-            } else if (phase === 'heart' || phase === 'end') {
-                // Kalbi çiz/koru
-                if (phase === 'heart') {
-                    t += 0.035;
-                    if (t >= Math.PI * 2) {
-                        t = Math.PI * 2;
-                        phase = 'end';
-                        setTimeout(() => {
-                            sigText.classList.add('show');
-                        }, 300);
-                    }
-                }
-
-                ctx.strokeStyle = '#e0aaff';
-                ctx.lineWidth = 2.5;
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = '#c77dff';
-
-                ctx.beginPath();
-                for (let currentT = 0; currentT <= t; currentT += 0.035) {
-                    const p = getHeartPoint(currentT);
-                    if (currentT === 0) ctx.moveTo(p.x, p.y);
-                    else ctx.lineTo(p.x, p.y);
-                }
-                ctx.stroke();
             }
+
+            // Kalp çizgisini ve Altın Oran spirallerini oluştur
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#c77dff';
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#e0aaff';
+            ctx.lineWidth = 2.5;
+
+            for (let currentT = 0; currentT <= t; currentT += 0.025) {
+                const p = getHeartPoint(currentT);
+
+                if (currentT === 0) {
+                    ctx.moveTo(p.x, p.y);
+                } else {
+                    ctx.lineTo(p.x, p.y);
+                }
+
+                // Kalbin üzerindeki belli aralıklara Altın Oran Spirali Kondur
+                if (Math.abs(currentT - t) < 0.05) {
+                    drawGoldenSpiralAt(p.x, p.y, 25, spiralAngle);
+                }
+            }
+            ctx.stroke();
 
             animFrame = requestAnimationFrame(render);
         }
@@ -233,7 +274,6 @@
         render();
     }
 
-    // Sayfa açıldığında sadece yağmur aksın
     function idleRain() {
         if (!isRunning) {
             ctx.fillStyle = '#04010a';
