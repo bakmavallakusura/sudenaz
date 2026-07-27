@@ -1,37 +1,161 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💜 Sude Naz 💜</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Great+Vibes&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudenaz için...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #0d0d11;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            position: absolute;
+            z-index: 1;
+        }
+        .text-overlay {
+            position: absolute;
+            z-index: 2;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ff3366;
+            text-shadow: 0 0 10px #ff3366, 0 0 20px #ff3366, 0 0 40px #ff0044;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 1.5s ease-in-out;
+            pointer-events: none;
+            letter-spacing: 2px;
+        }
+        .text-overlay.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .click-hint {
+            position: absolute;
+            bottom: 10%;
+            z-index: 3;
+            font-size: 1.1rem;
+            color: #888;
+            letter-spacing: 1px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+    </style>
 </head>
-
 <body>
 
-<div id="background"></div>
-
-<canvas id="stars"></canvas>
-
-<div id="particles"></div>
-
-<div id="heart-wrapper">
-    <div id="heart"></div>
+<div class="container">
+    <canvas id="heartCanvas"></canvas>
+    <div class="text-overlay" id="nameText">Sudenaz</div>
+    <div class="click-hint" id="hint">Ekrana dokun veya tıkla ❤️</div>
 </div>
 
-<div id="message">
-    <h1>𝓢𝓾𝓭𝓮 𝓝𝓪𝔃</h1>
-    <p>Her şey seninle daha güzel 💜</p>
-</div>
+<script>
+    const canvas = document.getElementById('heartCanvas');
+    const ctx = canvas.getContext('2d');
+    const nameText = document.getElementById('nameText');
+    const hint = document.getElementById('hint');
 
-<script src="script.js"></script>
+    let width, height;
+    let t = 0;
+    let isDrawing = false;
+    let animationFrame;
+
+    function resizeCanvas() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Kalp Fonksiyonu Denklem Parametreleri:
+    // x = 16 * sin^3(t)
+    // y = 13 * cos(t) - 5 * cos(2t) - 2 * cos(3t) - cos(4t)
+    function getHeartPoint(t) {
+        const scale = Math.min(width, height) / 45; // Ekran boyutuna göre ölçekleme
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        
+        return {
+            x: width / 2 + x * scale,
+            y: height / 2 + y * scale
+        };
+    }
+
+    function startHeartAnimation() {
+        if (isDrawing) return;
+        isDrawing = true;
+        
+        // Temizle ve ipucunu gizle
+        ctx.clearRect(0, 0, width, height);
+        nameText.classList.remove('show');
+        hint.style.display = 'none';
+        
+        t = 0;
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#ff3366';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff3366';
+        ctx.beginPath();
+
+        const startPoint = getHeartPoint(0);
+        ctx.moveTo(startPoint.x, startPoint.y);
+
+        function animate() {
+            // Animasyon hızı (t artış miktarı)
+            t += 0.03; 
+
+            if (t <= Math.PI * 2) {
+                const point = getHeartPoint(t);
+                ctx.lineTo(point.x, point.y);
+                ctx.stroke();
+                animationFrame = requestAnimationFrame(animate);
+            } else {
+                // Kalp çizimi tamamlandı
+                const endPoint = getHeartPoint(Math.PI * 2);
+                ctx.lineTo(endPoint.x, endPoint.y);
+                ctx.stroke();
+                
+                // Kalp bittiğinde yazıyı göster
+                setTimeout(() => {
+                    nameText.classList.add('show');
+                }, 300);
+            }
+        }
+
+        animate();
+    }
+
+    // Tıklama veya dokunma olayları
+    window.addEventListener('click', () => {
+        isDrawing = false;
+        cancelAnimationFrame(animationFrame);
+        startHeartAnimation();
+    });
+</script>
 
 </body>
 </html>
