@@ -1,85 +1,142 @@
-const flash = document.getElementById("flash");
-const text = document.getElementById("text");
-const heartContainer = document.getElementById("heartContainer");
-const particles = document.getElementById("particles");
-const canvas = document.getElementById("stars");
-const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let stars = [];
-
-for(let i=0;i<200;i++){
-    stars.push({
-        x:Math.random()*canvas.width,
-        y:Math.random()*canvas.height,
-        r:Math.random()*2,
-        s:Math.random()*0.5+0.2
-    });
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
-function drawStars(){
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    stars.forEach(star=>{
-
-        ctx.beginPath();
-        ctx.arc(star.x,star.y,star.r,0,Math.PI*2);
-        ctx.fillStyle="rgba(220,180,255,0.8)";
-        ctx.fill();
-
-        star.y += star.s;
-
-        if(star.y > canvas.height){
-            star.y = 0;
-            star.x = Math.random()*canvas.width;
-        }
-
-    });
-
-    requestAnimationFrame(drawStars);
+html,body{
+width:100%;
+height:100%;
+overflow:hidden;
+font-family:'Poppins',sans-serif;
+background:#070010;
 }
 
-drawStars();
-
-for(let i=0;i<80;i++){
-
-    const spark = document.createElement("div");
-
-    spark.className="spark";
-
-    spark.style.left=Math.random()*100+"%";
-    spark.style.bottom="-20px";
-
-    spark.style.animationDelay=Math.random()*8+"s";
-
-    spark.style.opacity=Math.random();
-
-    particles.appendChild(spark);
+body{
+background:
+radial-gradient(circle at top,#4d148c 0%,#1a0033 45%,#05000a 100%);
 }
 
-setTimeout(()=>{
+/* Arkaplan */
 
-    flash.classList.add("flash");
+#background{
 
-    heartContainer.style.transform =
-    "translate(-50%,-50%) scale(6)";
+position:fixed;
 
-    heartContainer.style.opacity = "0";
+width:100%;
+height:100%;
 
-},7000);
+background:
+radial-gradient(circle at 50% 20%,rgba(140,0,255,.18),transparent 40%),
+radial-gradient(circle at 80% 70%,rgba(90,0,255,.15),transparent 35%),
+radial-gradient(circle at 10% 80%,rgba(180,0,255,.12),transparent 40%);
 
-setTimeout(()=>{
+animation:bgMove 12s ease-in-out infinite alternate;
 
-    text.classList.add("show");
+z-index:0;
 
-},7600);
+}
 
-window.addEventListener("resize",()=>{
+@keyframes bgMove{
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+0%{
+transform:scale(1);
+filter:blur(0px);
+}
 
-});
+100%{
+transform:scale(1.15);
+filter:blur(10px);
+}
+
+}
+
+/* Canvas */
+
+#stars{
+
+position:fixed;
+
+left:0;
+top:0;
+
+width:100%;
+height:100%;
+
+z-index:1;
+
+}
+
+/* Kalp */
+
+#heart-wrapper{
+
+position:absolute;
+
+left:50%;
+top:50%;
+
+transform:translate(-50%,-50%);
+
+z-index:10;
+
+animation:beat 1.25s infinite;
+
+transition:1.5s;
+
+}
+
+#heart{
+
+width:180px;
+
+height:180px;
+
+background:#b100ff;
+
+transform:rotate(-45deg);
+
+position:relative;
+
+box-shadow:
+0 0 20px #b100ff,
+0 0 40px #b100ff,
+0 0 80px #8d00ff,
+0 0 140px #6500ff,
+0 0 220px #6500ff;
+
+}
+
+#heart::before,
+#heart::after{
+
+content:"";
+
+position:absolute;
+
+width:180px;
+height:180px;
+
+background:#b100ff;
+
+border-radius:50%;
+
+}
+
+#heart::before{
+
+top:-90px;
+
+left:0;
+
+}
+
+#heart::after{
+
+left:90px;
+
+top:0;
+
+}
+
+@keyframes beat{
