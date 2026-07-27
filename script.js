@@ -1,142 +1,71 @@
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+const canvas = document.getElementById("stars");
+const ctx = canvas.getContext("2d");
 
-html,body{
-width:100%;
-height:100%;
-overflow:hidden;
-font-family:'Poppins',sans-serif;
-background:#070010;
-}
+const heart = document.getElementById("heart-wrapper");
+const message = document.getElementById("message");
+const particles = document.getElementById("particles");
 
-body{
-background:
-radial-gradient(circle at top,#4d148c 0%,#1a0033 45%,#05000a 100%);
-}
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
-/* Arkaplan */
+let stars = [];
 
-#background{
+// Yıldız oluştur
+for(let i=0;i<250;i++){
 
-position:fixed;
-
-width:100%;
-height:100%;
-
-background:
-radial-gradient(circle at 50% 20%,rgba(140,0,255,.18),transparent 40%),
-radial-gradient(circle at 80% 70%,rgba(90,0,255,.15),transparent 35%),
-radial-gradient(circle at 10% 80%,rgba(180,0,255,.12),transparent 40%);
-
-animation:bgMove 12s ease-in-out infinite alternate;
-
-z-index:0;
+    stars.push({
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
+        r:Math.random()*2+0.3,
+        speed:Math.random()*0.5+0.2,
+        alpha:Math.random()
+    });
 
 }
 
-@keyframes bgMove{
+function animateStars(){
 
-0%{
-transform:scale(1);
-filter:blur(0px);
-}
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-100%{
-transform:scale(1.15);
-filter:blur(10px);
-}
+    stars.forEach(s=>{
 
-}
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
 
-/* Canvas */
+        ctx.fillStyle=`rgba(220,180,255,${s.alpha})`;
 
-#stars{
+        ctx.fill();
 
-position:fixed;
+        s.y+=s.speed;
 
-left:0;
-top:0;
+        if(s.y>canvas.height){
 
-width:100%;
-height:100%;
+            s.y=0;
+            s.x=Math.random()*canvas.width;
 
-z-index:1;
+        }
+
+    });
+
+    requestAnimationFrame(animateStars);
 
 }
 
-/* Kalp */
+animateStars();
 
-#heart-wrapper{
 
-position:absolute;
+// Mor parçacıklar
 
-left:50%;
-top:50%;
+for(let i=0;i<120;i++){
 
-transform:translate(-50%,-50%);
+    const p=document.createElement("div");
 
-z-index:10;
+    p.className="spark";
 
-animation:beat 1.25s infinite;
+    p.style.left=Math.random()*100+"%";
 
-transition:1.5s;
+    p.style.bottom="-30px";
 
-}
+    p.style.animationDelay=Math.random()*10+"s";
 
-#heart{
-
-width:180px;
-
-height:180px;
-
-background:#b100ff;
-
-transform:rotate(-45deg);
-
-position:relative;
-
-box-shadow:
-0 0 20px #b100ff,
-0 0 40px #b100ff,
-0 0 80px #8d00ff,
-0 0 140px #6500ff,
-0 0 220px #6500ff;
-
-}
-
-#heart::before,
-#heart::after{
-
-content:"";
-
-position:absolute;
-
-width:180px;
-height:180px;
-
-background:#b100ff;
-
-border-radius:50%;
-
-}
-
-#heart::before{
-
-top:-90px;
-
-left:0;
-
-}
-
-#heart::after{
-
-left:90px;
-
-top:0;
-
-}
-
-@keyframes beat{
+    p
