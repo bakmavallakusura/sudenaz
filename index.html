@@ -14,7 +14,8 @@
         }
 
         body {
-            background: #090312;
+            /* Çok daha koyu, derin gece moru arka plan */
+            background: #04010a;
             color: #fff;
             display: flex;
             justify-content: center;
@@ -52,14 +53,14 @@
         /* Kalbin Altındaki İmza - Sudenaz */
         .signature {
             font-family: 'Great Vibes', cursive;
-            font-size: 4.2rem;
-            color: #e0aaff;
-            text-shadow: 0 0 15px #c77dff, 0 0 30px #9d4edd, 0 0 50px #7b2cbf;
+            font-size: 4.5rem;
+            color: #d8b4fe;
+            text-shadow: 0 0 15px #9d4edd, 0 0 30px #7b2cbf, 0 0 45px #3c096c;
             opacity: 0;
             transform: translateY(20px);
             transition: all 2s ease-in-out;
             letter-spacing: 2px;
-            margin-top: 180px; /* Kalbin hemen altına denk gelmesi için */
+            margin-top: 190px;
         }
 
         .signature.show {
@@ -72,8 +73,8 @@
             position: absolute;
             bottom: 8%;
             z-index: 3;
-            font-size: 0.9rem;
-            color: #c77dff;
+            font-size: 0.85rem;
+            color: #9d4edd;
             letter-spacing: 3px;
             animation: pulse 2s infinite;
             text-transform: uppercase;
@@ -81,7 +82,7 @@
 
         @keyframes pulse {
             0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
+            50% { opacity: 0.9; transform: scale(1.05); }
         }
     </style>
 </head>
@@ -105,12 +106,45 @@
     let isRunning = false;
     let animFrame;
 
+    // Mor Yağmur Damlaları Dizisi
+    const rainDrops = [];
+    const rainCount = 70;
+
     function resize() {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
     }
     window.addEventListener('resize', resize);
     resize();
+
+    // Yağmur Parçacıklarını Başlat
+    for (let i = 0; i < rainCount; i++) {
+        rainDrops.push({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            length: Math.random() * 20 + 10,
+            speed: Math.random() * 3 + 1.5,
+            opacity: Math.random() * 0.4 + 0.1
+        });
+    }
+
+    function drawRain() {
+        ctx.lineWidth = 1;
+        for (let i = 0; i < rainCount; i++) {
+            const drop = rainDrops[i];
+            ctx.strokeStyle = `rgba(157, 78, 221, ${drop.opacity})`;
+            ctx.beginPath();
+            ctx.moveTo(drop.x, drop.y);
+            ctx.lineTo(drop.x, drop.y + drop.length);
+            ctx.stroke();
+
+            drop.y += drop.speed;
+            if (drop.y > height) {
+                drop.y = -drop.length;
+                drop.x = Math.random() * width;
+            }
+        }
+    }
 
     // Kalp Parametrik Denklemi
     function getHeartPoint(t) {
@@ -119,7 +153,7 @@
         const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
         return {
             x: width / 2 + x * scale,
-            y: height / 2 - 40 + y * scale // Kalbi biraz daha yukarı konumlandırdık
+            y: height / 2 - 40 + y * scale
         };
     }
 
@@ -135,14 +169,13 @@
         let t = 0;
         let phase = 'golden-spiral';
 
-        ctx.clearRect(0, 0, width, height);
-
         function render() {
-            ctx.fillStyle = 'rgba(9, 3, 18, 0.12)';
+            // Koyu arka planı temizle ve yağmuru çiz
+            ctx.fillStyle = '#04010a';
             ctx.fillRect(0, 0, width, height);
+            drawRain();
 
             if (phase === 'golden-spiral') {
-                // Altın oran spirali çizimi
                 angle += 0.08;
                 const radius = Math.pow(phi, angle / (Math.PI * 1.5)) * 2;
                 
@@ -154,10 +187,10 @@
                 const x2 = cx - radius * Math.cos(angle);
                 const y2 = cy - radius * Math.sin(angle);
 
-                ctx.strokeStyle = 'rgba(199, 125, 255, 0.4)';
+                ctx.strokeStyle = 'rgba(199, 125, 255, 0.5)';
                 ctx.lineWidth = 1.5;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#c77dff';
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = '#9d4edd';
 
                 ctx.beginPath();
                 ctx.arc(x1, y1, 1.5, 0, Math.PI * 2);
@@ -166,53 +199,57 @@
 
                 if (radius > Math.min(width, height) / 2.8) {
                     phase = 'heart';
-                    ctx.beginPath();
-                    const p = getHeartPoint(0);
-                    ctx.moveTo(p.x, p.y);
                 }
-            } else if (phase === 'heart') {
-                // Kalp çizgisi
-                t += 0.035;
+            } else if (phase === 'heart' || phase === 'end') {
+                // Kalbi çiz/koru
+                if (phase === 'heart') {
+                    t += 0.035;
+                    if (t >= Math.PI * 2) {
+                        t = Math.PI * 2;
+                        phase = 'end';
+                        setTimeout(() => {
+                            sigText.classList.add('show');
+                        }, 300);
+                    }
+                }
 
                 ctx.strokeStyle = '#e0aaff';
                 ctx.lineWidth = 2.5;
                 ctx.shadowBlur = 20;
                 ctx.shadowColor = '#c77dff';
 
-                if (t <= Math.PI * 2) {
-                    const p = getHeartPoint(t);
-                    ctx.lineTo(p.x, p.y);
-                    ctx.stroke();
-                } else {
-                    const p = getHeartPoint(Math.PI * 2);
-                    ctx.lineTo(p.x, p.y);
-                    ctx.stroke();
-
-                    phase = 'end';
-                    setTimeout(() => {
-                        sigText.classList.add('show');
-                    }, 400);
+                ctx.beginPath();
+                for (let currentT = 0; currentT <= t; currentT += 0.035) {
+                    const p = getHeartPoint(currentT);
+                    if (currentT === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
                 }
+                ctx.stroke();
             }
 
-            if (phase !== 'end') {
-                animFrame = requestAnimationFrame(render);
-            }
+            animFrame = requestAnimationFrame(render);
         }
 
         render();
     }
 
+    // Sayfa açıldığında sadece yağmur aksın
+    function idleRain() {
+        if (!isRunning) {
+            ctx.fillStyle = '#04010a';
+            ctx.fillRect(0, 0, width, height);
+            drawRain();
+            requestAnimationFrame(idleRain);
+        }
+    }
+    idleRain();
+
     window.addEventListener('click', () => {
-        isRunning = false;
-        cancelAnimationFrame(animFrame);
-        startAnimation();
+        if(!isRunning) startAnimation();
     });
 
     window.addEventListener('touchstart', () => {
-        isRunning = false;
-        cancelAnimationFrame(animFrame);
-        startAnimation();
+        if(!isRunning) startAnimation();
     });
 </script>
 
