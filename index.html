@@ -51,7 +51,7 @@
 
         /* Kalbin Altındaki İmza - El Yazısı Alanı */
         .signature-container {
-            margin-top: 200px;
+            margin-top: 220px;
             height: 90px;
             display: flex;
             align-items: center;
@@ -60,7 +60,7 @@
 
         .signature {
             font-family: 'Great Vibes', cursive;
-            font-size: 4.5rem;
+            font-size: 4.8rem;
             color: #d8b4fe;
             text-shadow: 0 0 15px #9d4edd, 0 0 30px #7b2cbf, 0 0 45px #3c096c;
             letter-spacing: 3px;
@@ -126,7 +126,7 @@
 
     // Mor Yağmur Damlaları
     const rainDrops = [];
-    const rainCount = 70;
+    const rainCount = 75;
 
     function resize() {
         width = canvas.width = window.innerWidth;
@@ -140,8 +140,8 @@
         rainDrops.push({
             x: Math.random() * window.innerWidth,
             y: Math.random() * window.innerHeight,
-            length: Math.random() * 20 + 10,
-            speed: Math.random() * 3 + 1.5,
+            length: Math.random() * 22 + 10,
+            speed: Math.random() * 3.2 + 1.5,
             opacity: Math.random() * 0.4 + 0.1
         });
     }
@@ -171,22 +171,24 @@
         const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
         return {
             x: width / 2 + x * scale,
-            y: height / 2 - 40 + y * scale
+            y: height / 2 - 45 + y * scale
         };
     }
 
-    // Altın Oran Spirali Çizen Fonksiyon (Her Kalp Noktasında Dönen Spiral)
-    function drawGoldenSpiralAt(cx, cy, radius, rotAngle) {
+    // Çizimin Uç Noktasındaki Altın Oran Spirali
+    function drawGoldenSpiralHead(cx, cy, angle) {
         const phi = (1 + Math.sqrt(5)) / 2;
-        ctx.strokeStyle = 'rgba(216, 180, 254, 0.6)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(224, 170, 255, 0.85)';
+        ctx.lineWidth = 1.2;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#d8b4fe';
         ctx.beginPath();
 
-        for (let a = 0; a < Math.PI * 3; a += 0.1) {
-            const r = Math.pow(phi, a / (Math.PI / 2)) * (radius / 15);
-            if (r > radius) break;
-            const x = cx + r * Math.cos(a + rotAngle);
-            const y = cy + r * Math.sin(a + rotAngle);
+        for (let a = 0; a < Math.PI * 2.5; a += 0.1) {
+            const r = Math.pow(phi, a / (Math.PI / 2)) * 2;
+            if (r > 35) break;
+            const x = cx + r * Math.cos(a + angle);
+            const y = cy + r * Math.sin(a + angle);
             if (a === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         }
@@ -205,7 +207,7 @@
             sigText.textContent += text.charAt(index);
             setTimeout(() => {
                 typeSignature(text, index + 1);
-            }, 200);
+            }, 210); // Harf yazılma temposu
         } else {
             setTimeout(() => {
                 sigText.classList.remove('writing');
@@ -230,10 +232,9 @@
             ctx.fillRect(0, 0, width, height);
             drawRain();
 
-            // Kalp çizimi ilerliyor
             if (!isFinished) {
                 t += 0.025;
-                spiralAngle += 0.15;
+                spiralAngle += 0.2;
 
                 if (t >= Math.PI * 2) {
                     t = Math.PI * 2;
@@ -244,29 +245,25 @@
                 }
             }
 
-            // Kalp çizgisini ve Altın Oran spirallerini oluştur
-            ctx.shadowBlur = 15;
+            // Kalp Çizgisi
+            ctx.shadowBlur = 20;
             ctx.shadowColor = '#c77dff';
+            ctx.strokeStyle = '#e0aaff';
+            ctx.lineWidth = 2.8;
 
             ctx.beginPath();
-            ctx.strokeStyle = '#e0aaff';
-            ctx.lineWidth = 2.5;
-
             for (let currentT = 0; currentT <= t; currentT += 0.025) {
                 const p = getHeartPoint(currentT);
-
-                if (currentT === 0) {
-                    ctx.moveTo(p.x, p.y);
-                } else {
-                    ctx.lineTo(p.x, p.y);
-                }
-
-                // Kalbin üzerindeki belli aralıklara Altın Oran Spirali Kondur
-                if (Math.abs(currentT - t) < 0.05) {
-                    drawGoldenSpiralAt(p.x, p.y, 25, spiralAngle);
-                }
+                if (currentT === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
             }
             ctx.stroke();
+
+            // Kalbin En Önünde Dönerek Çizen Altın Oran Spirali
+            if (!isFinished) {
+                const headPoint = getHeartPoint(t);
+                drawGoldenSpiralHead(headPoint.x, headPoint.y, spiralAngle);
+            }
 
             animFrame = requestAnimationFrame(render);
         }
